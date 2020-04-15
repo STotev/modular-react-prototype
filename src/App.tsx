@@ -1,7 +1,7 @@
-import React, {useRef} from "react";
-import {BrowserRouter, Route,} from "react-router-dom";
+import React, { useCallback, useMemo, useRef, useState } from "react";
+import { Route } from "react-router-dom";
 import clsx from "clsx";
-import {makeStyles} from "@material-ui/core/styles";
+import { makeStyles } from "@material-ui/core/styles";
 import CssBaseline from "@material-ui/core/CssBaseline";
 import Drawer from "@material-ui/core/Drawer";
 import AppBar from "@material-ui/core/AppBar";
@@ -17,8 +17,8 @@ import ChevronLeftIcon from "@material-ui/icons/ChevronLeft";
 import NotificationsIcon from "@material-ui/icons/Notifications";
 import "./App.scss";
 import modules from "./modules";
-import ScrollTop from "./core/components/ScrollTop";
 import ListItemLink from "./core/components/ListItemLink";
+import useScrollToTop from "./core/hooks/useScrollToTop";
 
 const drawerWidth = 240;
 
@@ -104,7 +104,10 @@ const useStyles = makeStyles((theme) => ({
 export default function App() {
   const mainRef = useRef<HTMLElement>(null);
   const classes = useStyles();
-  const [open, setOpen] = React.useState(true);
+  const [open, setOpen] = useState(true);
+  const [currentTab, setCurrentTab] = useState(modules[0].name);
+
+  useScrollToTop(mainRef);
 
   const handleDrawerOpen = () => {
     setOpen(true);
@@ -114,83 +117,89 @@ export default function App() {
     setOpen(false);
   };
 
+  const handleTabChange = useCallback((name: string) => setCurrentTab(name), [
+    setCurrentTab,
+  ]);
+
+  const renderLinks = useMemo(() => {
+    console.log("re-rendered");
+    return modules.map(
+      (module) =>
+        !module.hidden && (
+          <ListItemLink
+            key={module.name}
+            to={module.routeProps.path}
+            primary={module.name}
+            icon={module.icon}
+            selected={currentTab}
+            clickHandle={handleTabChange}
+          />
+        )
+    );
+  }, [currentTab, handleTabChange]);
+
   return (
-    <BrowserRouter>
-      <ScrollTop target={mainRef} />
-      <div className={classes.root}>
-        <CssBaseline />
-        <AppBar
-          position="absolute"
-          className={clsx(classes.appBar, open && classes.appBarShift)}
-        >
-          <Toolbar className={classes.toolbar} id="top-anchor">
-            <IconButton
-              edge="start"
-              color="inherit"
-              aria-label="open drawer"
-              onClick={handleDrawerOpen}
-              className={clsx(
-                classes.menuButton,
-                open && classes.menuButtonHidden
-              )}
-            >
-              <MenuIcon />
-            </IconButton>
-            <Typography
-              component="h1"
-              variant="h6"
-              color="inherit"
-              noWrap
-              className={classes.title}
-            >
-              Dashboard
-            </Typography>
-            <IconButton color="inherit">
-              <Badge badgeContent={4} color="secondary">
-                <NotificationsIcon />
-              </Badge>
-            </IconButton>
-          </Toolbar>
-        </AppBar>
-        <Drawer
-          variant="permanent"
-          classes={{
-            paper: clsx(classes.drawerPaper, !open && classes.drawerPaperClose),
-          }}
-          open={open}
-        >
-          <div className={classes.toolbarIcon}>
-            <IconButton onClick={handleDrawerClose}>
-              <ChevronLeftIcon />
-            </IconButton>
-          </div>
-          <Divider />
-          <List>
-            {modules.map(
-              (module) =>
-                !module.hidden && (
-                  <ListItemLink
-                    key={module.name}
-                    to={module.routeProps.path}
-                    primary={module.name}
-                    icon={module.icon}
-                  />
-                )
+    <div className={classes.root}>
+      <CssBaseline />
+      <AppBar
+        position="fixed"
+        className={clsx(classes.appBar, open && classes.appBarShift)}
+      >
+        <Toolbar className={classes.toolbar} id="top-anchor">
+          <IconButton
+            edge="start"
+            color="inherit"
+            aria-label="open drawer"
+            onClick={handleDrawerOpen}
+            className={clsx(
+              classes.menuButton,
+              open && classes.menuButtonHidden
             )}
-          </List>
-        </Drawer>
-        <main ref={mainRef} className={classes.content}>
-          <div className={classes.appBarSpacer} />
-          <Container maxWidth="xl" className={classes.container}>
-            {modules.map(
-              (module) =>
-                !module.hidden && (
-                  <Route key={module.name} {...module.routeProps} />
-                )
-            )}
-          </Container>
-        </main>
-      </div>
-    </BrowserRouter>
+          >
+            <MenuIcon />
+          </IconButton>
+          <Typography
+            component="h1"
+            variant="h6"
+            color="inherit"
+            noWrap
+            className={classes.title}
+          >
+            Dashboard
+          </Typography>
+          <IconButton color="inherit">
+            <Badge badgeContent={4} color="secondary">
+              <NotificationsIcon />
+            </Badge>
+          </IconButton>
+        </Toolbar>
+      </AppBar>
+      <Drawer
+        variant="permanent"
+        classes={{
+          paper: clsx(classes.drawerPaper, !open && classes.drawerPaperClose),
+        }}
+        open={open}
+      >
+        <div className={classes.toolbarIcon}>
+          <IconButton onClick={handleDrawerClose}>
+            <ChevronLeftIcon />
+          </IconButton>
+        </div>
+        <Divider />
+        <List>{renderLinks}</List>
+      </Drawer>
+      <main ref={mainRef} className={classes.content}>
+        <div className={classes.appBarSpacer} />
+        <Container maxWidth="xl" className={classes.container}>
+          {modules.map(
+            (module) =>
+              !module.hidden && (
+                <Route key={module.name} {...module.routeProps} />
+              )
+          )}
+        </Container>
+      </main>
+    </div>
   );
 }
