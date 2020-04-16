@@ -1,7 +1,7 @@
-import React, { useCallback, useMemo, useRef, useState } from "react";
-import { Route } from "react-router-dom";
+import React, {useCallback, useMemo, useRef, useState} from "react";
+import {Route} from "react-router-dom";
 import clsx from "clsx";
-import { makeStyles } from "@material-ui/core/styles";
+import {makeStyles} from "@material-ui/core/styles";
 import CssBaseline from "@material-ui/core/CssBaseline";
 import Drawer from "@material-ui/core/Drawer";
 import AppBar from "@material-ui/core/AppBar";
@@ -34,6 +34,7 @@ const useStyles = makeStyles((theme) => ({
     alignItems: "center",
     justifyContent: "flex-end",
     padding: "0 8px",
+    backgroundColor: theme.palette.primary.main,
     ...theme.mixins.toolbar,
   },
   appBar: {
@@ -61,7 +62,7 @@ const useStyles = makeStyles((theme) => ({
     flexGrow: 1,
   },
   drawerPaper: {
-    position: "relative",
+    position: "fixed",
     whiteSpace: "nowrap",
     width: drawerWidth,
     transition: theme.transitions.create("width", {
@@ -82,9 +83,7 @@ const useStyles = makeStyles((theme) => ({
   },
   appBarSpacer: theme.mixins.toolbar,
   content: {
-    flexGrow: 1,
-    height: "100vh",
-    overflow: "auto",
+    marginLeft: drawerWidth,
   },
   container: {
     paddingTop: theme.spacing(4),
@@ -107,7 +106,7 @@ export default function App() {
   const [open, setOpen] = useState(true);
   const [currentTab, setCurrentTab] = useState(modules[0].name);
 
-  useScrollToTop(mainRef);
+  useScrollToTop();
 
   const handleDrawerOpen = () => {
     setOpen(true);
@@ -121,9 +120,7 @@ export default function App() {
     setCurrentTab,
   ]);
 
-  const renderLinks = useMemo(() => {
-    console.log("re-rendered");
-    return modules.map(
+  const renderLinks = useMemo(() => modules.map(
       (module) =>
         !module.hidden && (
           <ListItemLink
@@ -135,8 +132,7 @@ export default function App() {
             clickHandle={handleTabChange}
           />
         )
-    );
-  }, [currentTab, handleTabChange]);
+    ), [currentTab, handleTabChange]);
 
   return (
     <div className={classes.root}>
@@ -144,8 +140,9 @@ export default function App() {
       <AppBar
         position="fixed"
         className={clsx(classes.appBar, open && classes.appBarShift)}
+        elevation={0}
       >
-        <Toolbar className={classes.toolbar} id="top-anchor">
+        <Toolbar className={classes.toolbar}>
           <IconButton
             edge="start"
             color="inherit"

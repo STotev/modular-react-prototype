@@ -1,32 +1,36 @@
 import React from "react";
-import {Link as RouterLink, LinkProps as RouterLinkProps} from "react-router-dom";
+import {Link, LinkProps} from "react-router-dom";
 import ListItem from "@material-ui/core/ListItem";
 import ListItemIcon from "@material-ui/core/ListItemIcon";
 import ListItemText from "@material-ui/core/ListItemText";
 
 type ListItemLinkProps = {
-  icon?: any;
+  icon: React.FunctionComponent;
   primary: string;
   to: string;
+  selected?: string;
+  clickHandle: FunctionStringCallback;
 };
 
 function ListItemLink(props: ListItemLinkProps) {
-  const { icon, primary, to } = props;
+  const { icon, primary, to, selected, clickHandle } = props;
 
   const renderLink = React.useMemo(
     () =>
-      React.forwardRef<any, Omit<RouterLinkProps, "to">>((itemProps, ref) => (
-        <RouterLink to={to} ref={ref} {...itemProps} />
+      React.forwardRef<any, Omit<LinkProps, "to">>((itemProps, ref) => (
+        <Link to={to} ref={ref} {...itemProps} onClick={() => clickHandle(primary)} />
       )),
-    [to]
+    [to, clickHandle, primary]
   );
 
-  const Icon = () => React.createElement(icon);
+  const checkSelected = React.useMemo(() => selected === primary, [selected, primary]);
+
+  const Icon = icon;
 
   return (
     <li>
-      <ListItem button component={renderLink}>
-        {icon ? (
+      <ListItem button component={renderLink} selected={checkSelected}>
+        {Icon ? (
           <ListItemIcon>
             <Icon />
           </ListItemIcon>
@@ -37,4 +41,4 @@ function ListItemLink(props: ListItemLinkProps) {
   );
 }
 
-export default ListItemLink;
+export default React.memo(ListItemLink);
