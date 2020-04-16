@@ -162,7 +162,7 @@ export default function App() {
             noWrap
             className={classes.title}
           >
-            Dashboard
+            {currentTab}
           </Typography>
           <IconButton color="inherit">
             <Badge badgeContent={4} color="secondary">
